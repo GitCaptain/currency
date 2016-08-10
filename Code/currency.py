@@ -2,50 +2,30 @@
 
 import urllib.request as req
 import tkinter as tk
+from bs4 import BeautifulSoup as parse
+import re
 
 
 def GetData():
     # легче забрать данные отсюда http://www.cbr.ru/
     # help(req)
     cbr = req.urlopen("http://www.cbr.ru/").read().decode("utf-8")
-    dataStart = cbr.find("Курсы валют")
-    Data = cbr[dataStart+20:]
-    dataStart = Data.find("<table>")
-    dataEnd = Data.find("</table>")
-    Data = Data[dataStart:dataEnd]
-
-    Data = Data.split("<tr>")[1:]
-
-    dataStart = Data[0].find("date_req") + 9
-    dataEnd = dataStart + 10
-    Date = Data[0][dataStart:dataEnd]
-
-    dataStart = Data[1].find("руб") + 16
-    Data[1] = Data[1][dataStart:]
-    dataEnd = Data[1].find("</td>")
-    USD = Data[1][0:dataEnd]
-
-    dataStart = Data[2].find("руб") + 16
-    Data[2] = Data[2][dataStart:]
-    dataEnd = Data[2].find("</td>")
-    EUR = Data[2][0:dataEnd]
-
-    return (Date, USD, EUR)
+    Data = parse(cbr, 'html.parser')
+    CurUSDnEUR = Data.find_all('td', {"class": "weak"})
+    CurUSD, CurEUR = CurUSDnEUR[0].get_text(), CurUSDnEUR[1].get_text()
+    Date = Data.find_all('a', {"href": re.compile("\/currency_base\/daily\.aspx\?date_req=\d{2}\.\d{2}\.\d{4}")})
+    CurDate, NextDate = Date[0].get_text(), Date[1].get_text()
+    return (CurDate, CurUSD, CurEUR)
 
 
 def setData(event):
     global info
-    info["text"] = "По состоянию на {0}\nДоллар: {1} руб. \nЕвро: {2} руб.".format(*GetData())
+    info["text"] = "По состоянию на {0}\nДоллар: {1} \nЕвро: {2}".format(*GetData())
     info.pack()
 
-
-def setWindow():
-    root = tk.Tk()
-    refreshButton = tk.Button(root, text=" Обновить данные ")
-    refreshButton.bind("<Button-1>", setData)
-    refreshButton.pack()
-    return root
-
-root = setWindow()
+root = tk.Tk()
+refreshButton = tk.Button(root, text=" Обновить данные ")
+refreshButton.bind("<Button-1>", setData)
+refreshButton.pack()
 info = tk.Label(root)
 root.mainloop()
