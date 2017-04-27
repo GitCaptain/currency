@@ -7,8 +7,7 @@ import re
 
 
 def GetData():
-    # легче забрать данные отсюда http://www.cbr.ru/
-    # help(req)
+    # http://www.cbr.ru/ - офф сайт ЦБР 
     cbr = req.urlopen("http://www.cbr.ru/").read().decode("utf-8")
     Data = parse(cbr, 'html.parser')
     CurUSDnEUR = Data.find_all('td', {"class": "weak"})
