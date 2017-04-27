@@ -19,7 +19,6 @@ def GetData():
 
 
 def setData(event):
-    global info
     info["text"] = "По состоянию на {0}\nДоллар: {1} \nЕвро: {2}".format(*GetData())
     info.pack()
 
